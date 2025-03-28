@@ -23,8 +23,8 @@ MCPoke Server provides a bridge between MCP-compatible AI models (like Claude) a
 
 ### Prerequisites
 
-- Python 3.8+
-- pip package manager
+- Node.js 16+
+- npm or yarn package manager
 
 ### Installation Steps
 
@@ -36,7 +36,7 @@ MCPoke Server provides a bridge between MCP-compatible AI models (like Claude) a
 
 2. Install dependencies
    ```bash
-   pip install -r requirements.txt
+   npm install
    ```
 
 3. Configure the server (optional)
@@ -45,9 +45,10 @@ MCPoke Server provides a bridge between MCP-compatible AI models (like Claude) a
    # Edit config.json with your preferred settings
    ```
 
-4. Start the server
+4. Build and start the server
    ```bash
-   python mcpoke_server.py
+   npm run build
+   npm start
    ```
 
 ## Usage with MCP Clients
@@ -378,12 +379,22 @@ Response:
 
 ### Architecture
 
-The MCPoke Server is built with a modular design:
+The MCPoke Server is built with a modular design using TypeScript and the official MCP TypeScript SDK:
 
 - **Core Server**: Manages MCP protocol handling and request processing
 - **API Client**: Handles communication with the PokéAPI
 - **Cache Manager**: Optimizes performance through efficient caching
 - **Data Processors**: Format and normalize API data for consumption
+
+### Technology Stack
+
+- **TypeScript**: Primary language for implementation
+- **Node.js**: Runtime environment 
+- **MCP TypeScript SDK**: Official SDK for creating MCP servers
+- **Axios**: HTTP client for making requests to PokéAPI
+- **Node-Cache**: In-memory caching system
+- **Jest**: Testing framework
+- **ESLint/Prettier**: Code quality and formatting
 
 ### Data Flow
 
@@ -402,6 +413,47 @@ To reduce API calls and improve performance, MCPoke Server implements a memory c
 - Caches API responses with configurable TTL (Time To Live)
 - Strategically prefetches related data
 - Maintains a clean cache purging strategy to prevent memory bloat
+
+### Sample Tool Implementation
+
+Here's an example of how the `get_pokemon` tool is implemented using the MCP TypeScript SDK:
+
+```typescript
+import { z } from 'zod';
+import { server } from '../server';
+import { pokeApiClient } from '../api/pokeapi';
+import { processPokemonData } from '../processors/pokemon';
+
+// Define the input schema for the tool
+const getPokemonInputSchema = z.object({
+  name_or_id: z.string().describe('The name or ID of the Pokémon')
+});
+
+// Register the tool with the MCP server
+server.tool(
+  'get_pokemon',
+  {
+    description: 'Get detailed information about a Pokémon by name or ID',
+    input: getPokemonInputSchema,
+  },
+  async ({ name_or_id }) => {
+    try {
+      // Get data from cache or API
+      const pokemonData = await pokeApiClient.getPokemon(name_or_id);
+      
+      // Process the data
+      const processedData = await processPokemonData(pokemonData);
+      
+      return processedData;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        throw new Error(`Pokémon "${name_or_id}" not found`);
+      }
+      throw new Error(`Failed to get Pokémon information: ${error.message}`);
+    }
+  }
+);
+```
 
 ## Configuration Options
 
@@ -434,40 +486,40 @@ The MCPoke Server project follows a clean, modular directory structure:
 mcpoke-server/
 ├── README.md                 # Project documentation
 ├── LICENSE                   # MIT license file
-├── requirements.txt          # Python dependencies
+├── package.json              # Project dependencies and scripts
+├── tsconfig.json             # TypeScript configuration
 ├── config.example.json       # Example configuration file
 ├── config.json               # User configuration (gitignored)
-├── mcpoke_server.py          # Main server entry point
 ├── src/
-│   ├── __init__.py           # Package initialization
-│   ├── server.py             # MCP server implementation
-│   ├── api_client.py         # PokéAPI client
-│   ├── cache.py              # Caching system
+│   ├── index.ts              # Main server entry point
+│   ├── server.ts             # MCP server implementation
+│   ├── api/
+│   │   ├── pokeapi.ts        # PokéAPI client
+│   │   └── types.ts          # API type definitions
+│   ├── cache/
+│   │   └── cache-manager.ts  # Caching system
 │   ├── processors/
-│   │   ├── __init__.py       # Package initialization
-│   │   ├── pokemon.py        # Pokémon data processor
-│   │   ├── ability.py        # Ability data processor
-│   │   ├── move.py           # Move data processor
-│   │   └── type.py           # Type data processor
+│   │   ├── pokemon.ts        # Pokémon data processor
+│   │   ├── ability.ts        # Ability data processor
+│   │   ├── move.ts           # Move data processor
+│   │   └── type.ts           # Type data processor
+│   ├── tools/
+│   │   ├── pokemon-tools.ts  # Pokémon-related tools
+│   │   ├── ability-tools.ts  # Ability-related tools
+│   │   ├── move-tools.ts     # Move-related tools
+│   │   └── type-tools.ts     # Type-related tools
 │   └── utils/
-│       ├── __init__.py       # Package initialization
-│       ├── formatters.py     # Data formatting utilities
-│       └── validators.py     # Input validation utilities
+│       ├── formatters.ts     # Data formatting utilities
+│       └── validators.ts     # Input validation utilities
 ├── tests/
-│   ├── __init__.py           # Test package initialization
-│   ├── test_server.py        # Server tests
-│   ├── test_api_client.py    # API client tests
-│   ├── test_cache.py         # Cache system tests
-│   └── test_processors/      # Data processor tests
-│       ├── __init__.py       # Test package initialization
-│       ├── test_pokemon.py   # Pokémon processor tests
-│       ├── test_ability.py   # Ability processor tests
-│       ├── test_move.py      # Move processor tests
-│       └── test_type.py      # Type processor tests
-├── examples/
-│   ├── basic_usage.py        # Basic usage examples
-│   ├── advanced_usage.py     # Advanced usage examples
-│   └── integration.py        # Integration examples
+│   ├── server.test.ts        # Server tests
+│   ├── api.test.ts           # API client tests
+│   ├── cache.test.ts         # Cache system tests
+│   └── processors/           # Data processor tests
+│       ├── pokemon.test.ts   # Pokémon processor tests
+│       ├── ability.test.ts   # Ability processor tests
+│       ├── move.test.ts      # Move processor tests
+│       └── type.test.ts      # Type processor tests
 └── assets/
     ├── banner.png            # Project banner image
     └── icons/                # Icon assets
@@ -475,18 +527,33 @@ mcpoke-server/
         └── stat_icons/       # Stat icons
 ```
 
-### Key Files and Directories
+## Testing with MCP Inspector
 
-- **mcpoke_server.py**: The main entry point for the server
-- **src/**: Contains all the core implementation code
-  - **server.py**: Implements the MCP server protocol
-  - **api_client.py**: Handles communication with the PokéAPI
-  - **cache.py**: Manages the caching system for improved performance
-  - **processors/**: Contains modules for processing different types of data
-  - **utils/**: Utility functions and helpers
-- **tests/**: Comprehensive test suite
-- **examples/**: Usage examples
-- **assets/**: Images and other static assets
+The MCP Inspector tool can be used to test the server during development:
+
+```bash
+# Install the MCP Inspector
+npm install -g @modelcontextprotocol/inspector
+
+# Run the MCP Inspector with our server
+npx @modelcontextprotocol/inspector npm start
+```
+
+## Configuration for Claude Desktop
+
+To use the MCPoke Server with Claude Desktop, users need to configure their Claude Desktop app:
+
+```json
+{
+  "mcpServers": {
+    "mcpoke-server": {
+      "command": "npx",
+      "args": ["mcpoke-server"],
+      "env": {}
+    }
+  }
+}
+```
 
 ## Development and Extension
 
@@ -494,8 +561,8 @@ mcpoke-server/
 
 MCPoke Server is designed to be easily extensible. To add new features:
 
-1. Create a new method in the `MCPokeServer` class
-2. Add the corresponding command handler in the `handle_mcp_request` function
+1. Create new tool definitions in the appropriate files under `src/tools/`
+2. Add new data processors if needed in `src/processors/`
 3. Update documentation to reflect the new functionality
 
 ### Contributing
@@ -513,7 +580,7 @@ Contributions are welcome! Please follow these steps:
 To run the test suite:
 
 ```bash
-pytest
+npm test
 ```
 
 ## License
