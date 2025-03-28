@@ -1,7 +1,7 @@
 """
 Type data processor.
 
-This module processes type data from the PokéAPI.
+This module processes type data from the PokéAPI for consumption by MCP clients.
 """
 
 import logging
@@ -14,9 +14,9 @@ logger = logging.getLogger('mcpoke-server.processors.type')
 
 class TypeProcessor:
     """
-    Processor for type data.
+    Type data processor.
     
-    This class processes type data from the PokéAPI.
+    This class processes type data from the PokéAPI for consumption by MCP clients.
     """
     
     def __init__(self, api_client: PokeAPIClient, cache: CacheManager):
@@ -32,67 +32,63 @@ class TypeProcessor:
     
     def get_type(self, name_or_id: str) -> Dict[str, Any]:
         """
-        Get processed information about a type.
+        Get information about a type.
         
         Args:
             name_or_id: Name or ID of the type
         
         Returns:
-            Processed type information
-        """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
-    
-    def get_type_effectiveness(self, attacking_type: str, defending_types: List[str]) -> Dict[str, Any]:
-        """
-        Calculate type effectiveness.
+            Processed type data
         
-        Args:
-            attacking_type: Attacking type
-            defending_types: List of defending types
-        
-        Returns:
-            Type effectiveness information
+        Raises:
+            Exception: If the type could not be fetched
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
-    
-    def _process_type_data(self, type_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Process raw type data.
+        # Check cache first
+        cache_key = f"type:{name_or_id.lower()}"
+        cached_data = self.cache.get(cache_key)
         
-        Args:
-            type_data: Raw type data from the API
+        if cached_data is not None:
+            return cached_data
         
-        Returns:
-            Processed type information
-        """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
-    
-    def _calculate_effectiveness(self, attacking_type_data: Dict[str, Any], defending_types_data: List[Dict[str, Any]]) -> float:
-        """
-        Calculate the effectiveness of an attack against a combination of defending types.
-        
-        Args:
-            attacking_type_data: Raw attacking type data
-            defending_types_data: List of raw defending type data
-        
-        Returns:
-            Effectiveness multiplier
-        """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
-    
-    def _get_effectiveness_description(self, effectiveness: float) -> str:
-        """
-        Get a description of the effectiveness.
-        
-        Args:
-            effectiveness: Effectiveness multiplier
-        
-        Returns:
-            Description string
-        """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        try:
+            # Fetch type data
+            type_data = self.api_client.fetch_type(name_or_id)
+            
+            # Process damage relations
+            damage_relations = type_data.get("damage_relations", {})
+            
+            processed_damage_relations = {
+                "double_damage_from": [
+                    t.get("name") for t in damage_relations.get("double_damage_from", [])
+                ],
+                "double_damage_to": [
+                    t.get("name") for t in damage_relations.get("double_damage_to", [])
+                ],
+                "half_damage_from": [
+                    t.get("name") for t in damage_relations.get("half_damage_from", [])
+                ],
+                "half_damage_to": [
+                    t.get("name") for t in damage_relations.get("half_damage_to", [])
+                ],
+                "no_damage_from": [
+                    t.get("name") for t in damage_relations.get("no_damage_from", [])
+                ],
+                "no_damage_to": [
+                    t.get("name") for t in damage_relations.get("no_damage_to", [])
+                ]
+            }
+            
+            # Process data
+            processed_data = {
+                "id": type_data.get("id"),
+                "name": type_data.get("name", "").capitalize(),
+                "damage_relations": processed_damage_relations
+            }
+            
+            # Cache processed data
+            self.cache.set(cache_key, processed_data)
+            
+            return processed_data
+        except Exception as e:
+            logger.error(f"Error processing type {name_or_id}: {e}")
+            raise

@@ -23,6 +23,8 @@ def parse_args():
                         help='Port to run the server on')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug mode')
+    parser.add_argument('--transport', type=str, choices=['http', 'stdio', 'both'], default='both',
+                        help='Transport mode (http, stdio, or both)')
     return parser.parse_args()
 
 def load_config(config_path):
@@ -47,7 +49,8 @@ def load_config(config_path):
                     "enabled": True,
                     "ttl": 86400,
                     "max_size": 1000
-                }
+                },
+                "transport": ["http", "stdio"]
             }
     except Exception as e:
         print(f"Failed to load config: {e}")
@@ -65,6 +68,14 @@ def main():
         config["server"]["port"] = args.port
     if args.debug:
         config["server"]["debug"] = True
+    
+    # Set transport mode
+    if args.transport == 'http':
+        config["transport"] = ["http"]
+    elif args.transport == 'stdio':
+        config["transport"] = ["stdio"]
+    elif args.transport == 'both':
+        config["transport"] = ["http", "stdio"]
     
     # Create and start the MCPoke Server
     server = MCPokeServer(config)

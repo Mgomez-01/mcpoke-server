@@ -45,8 +45,21 @@ class CacheManager:
         Returns:
             Cached item or None if not found or expired
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        if not self.enabled:
+            return None
+        
+        if key not in self.cache:
+            return None
+        
+        timestamp, value = self.cache[key]
+        
+        if self._is_expired(timestamp):
+            logger.debug(f"Cache miss (expired): {key}")
+            self.invalidate(key)
+            return None
+        
+        logger.debug(f"Cache hit: {key}")
+        return value
     
     def set(self, key: str, value: Any) -> None:
         """
@@ -56,8 +69,16 @@ class CacheManager:
             key: Cache key
             value: Value to cache
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        if not self.enabled:
+            return
+        
+        # Check if cache is full
+        if len(self.cache) >= self.max_size:
+            self.prune()
+        
+        # Store item with current timestamp
+        self.cache[key] = (time.time(), value)
+        logger.debug(f"Cached: {key}")
     
     def invalidate(self, key: str) -> None:
         """
@@ -66,13 +87,20 @@ class CacheManager:
         Args:
             key: Cache key
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        if not self.enabled:
+            return
+        
+        if key in self.cache:
+            del self.cache[key]
+            logger.debug(f"Invalidated: {key}")
     
     def clear(self) -> None:
         """Clear the entire cache."""
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        if not self.enabled:
+            return
+        
+        self.cache.clear()
+        logger.debug("Cache cleared")
     
     def prune(self) -> None:
         """
@@ -80,8 +108,31 @@ class CacheManager:
         
         This method is called automatically when the cache gets too large.
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        if not self.enabled:
+            return
+        
+        # First, remove expired items
+        expired_keys = [
+            key for key, (timestamp, _) in self.cache.items()
+            if self._is_expired(timestamp)
+        ]
+        
+        for key in expired_keys:
+            del self.cache[key]
+        
+        # If still too large, remove oldest items
+        if len(self.cache) >= self.max_size:
+            # Sort by timestamp (oldest first)
+            sorted_items = sorted(self.cache.items(), key=lambda x: x[1][0])
+            
+            # Number of items to remove
+            num_to_remove = len(self.cache) - self.max_size + 10  # Remove extra to avoid frequent pruning
+            
+            # Remove oldest items
+            for key, _ in sorted_items[:num_to_remove]:
+                del self.cache[key]
+        
+        logger.debug(f"Pruned {len(expired_keys)} expired items, cache size: {len(self.cache)}")
     
     def _is_expired(self, timestamp: float) -> bool:
         """
@@ -93,5 +144,4 @@ class CacheManager:
         Returns:
             True if the item is expired, False otherwise
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        return time.time() - timestamp > self.ttl

@@ -5,7 +5,7 @@ This module handles communication with the PokéAPI.
 """
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import requests
 
 logger = logging.getLogger('mcpoke-server.api_client')
@@ -36,8 +36,7 @@ class PokeAPIClient:
         Returns:
             Pokémon data
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        return self.make_request(f"pokemon/{name_or_id.lower()}")
     
     def fetch_pokemon_species(self, name_or_id: str) -> Dict[str, Any]:
         """
@@ -49,8 +48,7 @@ class PokeAPIClient:
         Returns:
             Pokémon species data
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        return self.make_request(f"pokemon-species/{name_or_id.lower()}")
     
     def fetch_ability(self, name_or_id: str) -> Dict[str, Any]:
         """
@@ -62,8 +60,7 @@ class PokeAPIClient:
         Returns:
             Ability data
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        return self.make_request(f"ability/{name_or_id.lower()}")
     
     def fetch_type(self, name_or_id: str) -> Dict[str, Any]:
         """
@@ -75,8 +72,7 @@ class PokeAPIClient:
         Returns:
             Type data
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        return self.make_request(f"type/{name_or_id.lower()}")
     
     def fetch_move(self, name_or_id: str) -> Dict[str, Any]:
         """
@@ -88,8 +84,7 @@ class PokeAPIClient:
         Returns:
             Move data
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        return self.make_request(f"move/{name_or_id.lower()}")
     
     def fetch_evolution_chain(self, chain_id: int) -> Dict[str, Any]:
         """
@@ -101,18 +96,20 @@ class PokeAPIClient:
         Returns:
             Evolution chain data
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        return self.make_request(f"evolution-chain/{chain_id}")
     
-    def search_all_pokemon(self) -> Dict[str, Any]:
+    def search_all_pokemon(self, limit: int = 1000, offset: int = 0) -> Dict[str, Any]:
         """
         Fetch a list of all Pokémon.
+        
+        Args:
+            limit: Maximum number of results to return
+            offset: Results offset
         
         Returns:
             List of all Pokémon (paginated)
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        return self.make_request("pokemon", params={"limit": limit, "offset": offset})
     
     def make_request(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -128,5 +125,13 @@ class PokeAPIClient:
         Raises:
             requests.RequestException: If the request fails
         """
-        # This is a skeleton implementation. We'll just pass for now.
-        pass
+        url = f"{self.base_url}/{endpoint}"
+        
+        try:
+            logger.debug(f"Making request to {url}")
+            response = requests.get(url, params=params, timeout=self.timeout)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logger.error(f"Request failed: {e}")
+            raise
