@@ -145,51 +145,27 @@ async function downloadAndCachePokemonSprites(
 }
 
 /**
- * Convert a local file path to a data URL
- * @param filePath The local path to the file
- * @returns The data URL for the file, or null if file doesn't exist
- */
-function fileToDataUrl(filePath: string | null): string | null {
-  if (!filePath || !fs.existsSync(filePath)) {
-    return null;
-  }
-  
-  try {
-    const fileData = fs.readFileSync(filePath);
-    const base64Data = fileData.toString('base64');
-    const mimeType = 'image/png'; // Assuming all sprites are PNGs
-    return `data:${mimeType};base64,${base64Data}`;
-  } catch (error) {
-    console.error(`Failed to read file ${filePath}:`, error);
-    return null;
-  }
-}
-
-/**
- * Get data URLs for a Pokémon's sprites
+ * Get server URLs for a Pokémon's sprites
  * @param id The Pokémon ID
- * @returns An object with the data URLs for the sprites, or null values if sprites don't exist
+ * @param baseUrl The base URL of the sprite server (e.g., http://localhost:8080)
+ * @returns An object with URLs for the different sprite types
  */
-function getPokemonSpriteDataUrls(id: number): {
-  front_default: string | null;
-  front_shiny: string | null;
-  official_artwork: string | null;
+function getPokemonSpriteUrls(id: number, baseUrl: string = 'http://localhost:8080'): {
+  front_default: string;
+  front_shiny: string;
+  official_artwork: string;
 } {
-  const frontDefaultPath = getFrontDefaultSpritePath(id);
-  const frontShinyPath = getFrontShinySpritePath(id);
-  const officialArtworkPath = getOfficialArtworkPath(id);
-  
   return {
-    front_default: fileToDataUrl(frontDefaultPath),
-    front_shiny: fileToDataUrl(frontShinyPath),
-    official_artwork: fileToDataUrl(officialArtworkPath)
+    front_default: `${baseUrl}/sprites/pokemon/${id}.png`,
+    front_shiny: `${baseUrl}/sprites/pokemon/shiny/${id}.png`,
+    official_artwork: `${baseUrl}/artwork/${id}.png`
   };
 }
 
 // Export functions
 export {
   downloadAndCachePokemonSprites,
-  getPokemonSpriteDataUrls,
+  getPokemonSpriteUrls,
   spriteExistsLocally,
   getFrontDefaultSpritePath,
   getFrontShinySpritePath,

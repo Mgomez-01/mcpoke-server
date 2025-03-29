@@ -8,6 +8,7 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { debugLog, debugError } from './utils/debug.js';
 import { server } from './server.js';
+import { startHttpServer } from './http-server.js';
 import { registerPokemonTools } from './tools/pokemon-tools.js';
 import { registerAbilityTools } from './tools/ability-tools.js';
 import { registerTypeTools } from './tools/type-tools.js';
@@ -37,6 +38,11 @@ async function main() {
   process.on('SIGTERM', handleShutdown);
   
   try {
+    // Start the HTTP server for serving sprites
+    debugLog('Main', 'Starting HTTP server for sprites');
+    const httpPort = process.env.HTTP_PORT ? parseInt(process.env.HTTP_PORT) : 8080;
+    const httpServer = startHttpServer(httpPort);
+    
     debugLog('Main', 'Registering tools completed');
     debugLog('Main', 'Creating StdioServerTransport');
     const transport = new StdioServerTransport();
