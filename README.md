@@ -25,7 +25,7 @@ MCPoke Server is a Model Context Protocol (MCP) server that connects to the Pok√
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/username/mcpoke-server.git
+   git clone https://github.com/Mgomez-01/mcpoke-server.git
    cd mcpoke-server
    ```
 
@@ -102,6 +102,21 @@ npm run debug
 ```
 
 This will start the server with Node.js inspector enabled.
+
+## Future Enhancements
+
+While the server is fully functional, here are (tentative) planned enhancements:
+
+1. **Testing**: Add comprehensive unit and integration tests for reliability
+2. **Advanced Caching**: Implement more sophisticated caching strategies with TTL optimization
+3. **Enhanced Type System**: Improve type effectiveness calculations with detailed generation-specific mechanics
+4. **Robust Error Handling**: Add more comprehensive error handling and edge cases
+5. **Extended Data**: Add support for more Pok√©mon data such as egg groups, habitats, encounters, etc.
+6. **Advanced Search**: Implement sophisticated search features with filtering by type, stats, abilities
+7. **Image Utilities**: Add sprite and image utilities for better visual representation
+8. **Performance Optimization**: Optimize API calls and response processing for faster results
+9. **Pagination Support**: Add pagination for large result sets
+10. **Documentation**: Create detailed API documentation and more usage examples
 
 ## Acknowledgments
 
