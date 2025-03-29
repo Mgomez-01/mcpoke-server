@@ -6,7 +6,7 @@ import { pokeApiClient } from '../api/pokeapi.js';
 import { cacheManager } from '../cache/cache-manager.js';
 import { 
   downloadAndCachePokemonSprites,
-  getPokemonSpriteDataUrls,
+  getPokemonSpriteUrls,
   spriteExistsLocally,
   getFrontDefaultSpritePath,
   getFrontShinySpritePath,

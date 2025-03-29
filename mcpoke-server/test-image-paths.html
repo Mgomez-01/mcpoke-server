@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCPoke Image Path Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .pokemon-card {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .pokemon-image {
+            margin-right: 20px;
+        }
+        img {
+            max-width: 120px;
+        }
+        .pokemon-info {
+            flex: 1;
+        }
+        h2 {
+            margin-top: 0;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MCPoke Image Path Test</h1>
+    <p>This page tests whether the MCPoke server is correctly serving image paths instead of base64 encoded images.</p>
+    
+    <button id="fetchPokemon">Fetch Pokémon Data</button>
+    
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('fetchPokemon').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Loading...';
+
+            try {
+                // Get the port from the server logs (default is 3000)
+                const PORT = 3000;
+                const response = await fetch(`http://localhost:${PORT}/call_tool`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: 'get_pokemon',
+                        arguments: {
+                            name_or_id: '25' // Pikachu
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const result = JSON.parse(data.content[0].text);
+                
+                // Display the Pokémon data
+                let html = '';
+                
+                html += `<h2>Result</h2>`;
+                html += `<div class="pokemon-card">`;
+                
+                // Check if using url_paths instead of data_urls
+                if (result.sprites.url_paths) {
+                    html += `<div class="pokemon-image">`;
+                    html += `<h3>URL Paths (New Method)</h3>`;
+                    if (result.sprites.url_paths.front_default) {
+                        html += `<img src="${result.sprites.url_paths.front_default}" alt="${result.name} sprite">`;
+                        html += `<p>Path: ${result.sprites.url_paths.front_default}</p>`;
+                    } else {
+                        html += `<p>No front_default URL path available</p>`;
+                    }
+                    html += `</div>`;
+                } else {
+                    html += `<p>No URL paths available - server may not be updated yet</p>`;
+                }
+                
+                // Check if data_urls still exists (for backward compatibility)
+                if (result.sprites.data_urls) {
+                    html += `<div class="pokemon-image">`;
+                    html += `<h3>Data URLs (Old Method)</h3>`;
+                    if (result.sprites.data_urls.front_default) {
+                        html += `<img src="${result.sprites.data_urls.front_default}" alt="${result.name} sprite">`;
+                        html += `<p>Data URL (truncated): ${result.sprites.data_urls.front_default.substring(0, 30)}...</p>`;
+                    } else {
+                        html += `<p>No front_default data URL available</p>`;
+                    }
+                    html += `</div>`;
+                }
+                
+                html += `<div class="pokemon-info">`;
+                html += `<h2>${result.name} (#${result.id})</h2>`;
+                html += `<p><strong>Types:</strong> ${result.types.join(', ')}</p>`;
+                html += `<p><strong>Height:</strong> ${result.height} m</p>`;
+                html += `<p><strong>Weight:</strong> ${result.weight} kg</p>`;
+                html += `<p><strong>Description:</strong> ${result.description}</p>`;
+                html += `</div>`;
+                html += `</div>`;
+                
+                // Display the full JSON for debugging
+                html += `<h3>Full JSON Response:</h3>`;
+                html += `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

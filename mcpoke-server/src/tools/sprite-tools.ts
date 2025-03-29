@@ -7,7 +7,7 @@ import { cacheManager } from '../cache/cache-manager.js';
 import { isValidPokemonNameOrId } from '../utils/validators.js';
 import {
   downloadAndCachePokemonSprites,
-  getPokemonSpriteDataUrls,
+  getPokemonSpriteUrls,
   spriteExistsLocally,
   getFrontDefaultSpritePath,
   getFrontShinySpritePath,
@@ -42,7 +42,7 @@ export function registerSpriteTools(): void {
       const localPaths = await downloadAndCachePokemonSprites(pokemonData.id, sprites);
       
       // Get data URLs
-      const dataUrls = getPokemonSpriteDataUrls(pokemonData.id);
+      const dataUrls = getPokemonSpriteUrls(pokemonData.id);
       
       return {
         id: pokemonData.id,
