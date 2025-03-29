@@ -46,8 +46,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const result = await handler(request.params.arguments || {});
     return {
       content: [{
-        type: "application/json",
-        json: result
+        type: "text",
+        text: JSON.stringify(result)
       }]
     };
   } catch (error: any) {
