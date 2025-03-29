@@ -2,6 +2,7 @@
  * PokeAPI client for handling API requests
  */
 import axios, { AxiosInstance } from 'axios';
+import { debugLog, debugError } from '../utils/debug.js';
 import {
   PokemonResponse,
   PokemonSpeciesResponse,
@@ -38,8 +39,15 @@ class PokeApiClient {
    * @returns The Pokémon data
    */
   async getPokemon(nameOrId: string | number): Promise<PokemonResponse> {
-    const response = await this.client.get<PokemonResponse>(`/pokemon/${nameOrId.toString().toLowerCase()}`);
-    return response.data;
+    try {
+      debugLog('PokeAPI', `Requesting Pokémon data for: ${nameOrId}`);
+      const response = await this.client.get<PokemonResponse>(`/pokemon/${nameOrId.toString().toLowerCase()}`);
+      debugLog('PokeAPI', `Received Pokémon data for: ${nameOrId}`, { id: response.data.id, name: response.data.name });
+      return response.data;
+    } catch (error) {
+      debugError('PokeAPI', error, `Failed to fetch Pokémon: ${nameOrId}`);
+      throw error;
+    }
   }
 
   /**

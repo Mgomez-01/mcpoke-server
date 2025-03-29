@@ -2,6 +2,7 @@
  * Cache manager for optimizing API requests
  */
 import NodeCache from 'node-cache';
+import { debugLog } from '../utils/debug.js';
 
 /**
  * Cache manager for optimizing API requests
@@ -33,7 +34,15 @@ class CacheManager {
    */
   get<T>(key: string): T | undefined {
     if (!this.enabled) return undefined;
-    return this.cache.get<T>(key);
+    
+    const value = this.cache.get<T>(key);
+    if (value !== undefined) {
+      debugLog('Cache', `Cache hit for key: ${key}`);
+    } else {
+      debugLog('Cache', `Cache miss for key: ${key}`);
+    }
+    
+    return value;
   }
 
   /**
@@ -47,11 +56,16 @@ class CacheManager {
     if (!this.enabled) return false;
     
     // If ttl is undefined, use default TTL (don't pass it to set)
+    let result: boolean;
     if (ttl === undefined) {
-      return this.cache.set(key, value);
+      result = this.cache.set(key, value);
+      debugLog('Cache', `Cached value for key: ${key} with default TTL`);
+    } else {
+      result = this.cache.set(key, value, ttl);
+      debugLog('Cache', `Cached value for key: ${key} with TTL: ${ttl}s`);
     }
     
-    return this.cache.set(key, value, ttl);
+    return result;
   }
 
   /**
@@ -91,6 +105,7 @@ class CacheManager {
    */
   async getOrSet<T>(key: string, factory: () => Promise<T> | T, ttl?: number): Promise<T> {
     if (!this.enabled) {
+      debugLog('Cache', `Cache disabled, directly executing factory for key: ${key}`);
       return Promise.resolve(factory());
     }
 
@@ -99,6 +114,7 @@ class CacheManager {
       return cachedValue;
     }
 
+    debugLog('Cache', `Executing factory function for key: ${key}`);
     const value = await Promise.resolve(factory());
     this.set(key, value, ttl);
     return value;

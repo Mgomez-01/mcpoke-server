@@ -47,3 +47,6 @@ venv.bak/
 config.json
 api_docs/
 tools/api_samples/
+
+
+**/assets/

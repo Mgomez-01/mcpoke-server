@@ -16,7 +16,8 @@
     "watch": "tsc --watch",
     "start": "node build/index.js",
     "debug": "node --inspect build/index.js",
-    "inspector": "npx @modelcontextprotocol/inspector build/index.js"
+    "inspector": "npx @modelcontextprotocol/inspector build/index.js",
+    "sprites:clear": "node build/utils/images/clear-cache.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",

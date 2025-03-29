@@ -16,6 +16,7 @@ MCPoke Server provides a bridge between MCP-compatible AI models (like Claude) a
 - 📊 **Pokémon Comparison**: Compare multiple Pokémon side by side
 - 🧮 **Type Effectiveness Calculator**: Calculate type matchups for battles
 - 🧠 **Memory Caching**: Efficient request caching to reduce API calls
+- 🖼️ **Sprite Management**: Download, cache, and manage Pokémon sprites locally
 
 ## Installation
 
@@ -119,6 +120,85 @@ MCPoke Server can be used with any MCP-compatible client, such as Claude Desktop
   "defending_types": ["water", "flying"]
 }
 ```
+
+## Sprite Management
+
+The MCPoke Server includes a comprehensive sprite management system that automatically downloads, caches, and serves Pokémon sprites locally. This improves performance and reduces bandwidth usage when the same Pokémon are requested multiple times.
+
+### Sprite Storage
+
+Sprites are stored in the following directories:
+- `assets/sprites/pokemon/` - Regular sprites
+- `assets/sprites/pokemon/shiny/` - Shiny sprites
+- `assets/artwork/` - Official artwork
+
+When sprites are available locally, the server returns data URLs that can be used directly without additional network requests.
+
+### Sprite Management Commands
+
+#### Download Sprites for a Pokémon
+
+```json
+{
+  "command": "download_sprites",
+  "name_or_id": "pikachu"
+}
+```
+
+Manually downloads and caches all sprites (regular, shiny, and official artwork) for a specific Pokémon.
+
+#### Check Sprite Cache Status
+
+```json
+{
+  "command": "check_sprite_cache",
+  "name_or_id": "pikachu"
+}
+```
+
+Checks whether sprites for a specific Pokémon are already cached locally.
+
+#### Bulk Download Sprites
+
+```json
+{
+  "command": "bulk_download_sprites",
+  "start_id": 1,
+  "end_id": 10,
+  "sprite_type": "all"
+}
+```
+
+Downloads sprites for a range of Pokémon IDs. The `sprite_type` parameter accepts:
+- `all` - Download all types of sprites (default)
+- `default` - Download only regular sprites
+- `shiny` - Download only shiny sprites
+- `artwork` - Download only official artwork
+
+#### Get Sprite Cache Statistics
+
+```json
+{
+  "command": "get_sprite_cache_stats"
+}
+```
+
+Returns statistics about the cached sprites, including the number of sprites cached and the total size.
+
+#### Clear Sprite Cache
+
+```json
+{
+  "command": "clear_sprite_cache",
+  "type": "all"
+}
+```
+
+Clears the sprite cache. The `type` parameter accepts:
+- `all` - Clear all types of sprites (default)
+- `regular` - Clear only regular sprites
+- `shiny` - Clear only shiny sprites
+- `artwork` - Clear only official artwork
 
 ## Testing with MCP Inspector
 

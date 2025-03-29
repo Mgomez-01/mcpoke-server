@@ -9,6 +9,14 @@ import {
   PokemonSpeciesResponse, 
   EvolutionChainResponse 
 } from '../api/types.js';
+import {
+  downloadAndCachePokemonSprites,
+  getPokemonSpriteDataUrls,
+  spriteExistsLocally,
+  getFrontDefaultSpritePath,
+  getFrontShinySpritePath,
+  getOfficialArtworkPath
+} from '../utils/images/image-manager.js';
 
 /**
  * Processed Pokémon data structure
@@ -35,6 +43,11 @@ export interface ProcessedPokemon {
     front_default: string | null;
     front_shiny: string | null;
     official_artwork: string | null;
+    data_urls?: {
+      front_default: string | null;
+      front_shiny: string | null;
+      official_artwork: string | null;
+    };
   };
   description: string;
   generation: string;
@@ -89,6 +102,49 @@ export async function processPokemonData(
     return acc;
   }, {});
 
+  // Prepare sprites data
+  const sprites: {
+    front_default: string | null;
+    front_shiny: string | null;
+    official_artwork: string | null;
+    data_urls?: {
+      front_default: string | null;
+      front_shiny: string | null;
+      official_artwork: string | null;
+    };
+  } = {
+    front_default: pokemonData.sprites.front_default,
+    front_shiny: pokemonData.sprites.front_shiny,
+    official_artwork: pokemonData.sprites.other?.['official-artwork']?.front_default || null
+  };
+
+  // Check if we already have the sprites locally
+  const frontDefaultPath = getFrontDefaultSpritePath(pokemonData.id);
+  const frontShinyPath = getFrontShinySpritePath(pokemonData.id);
+  const officialArtworkPath = getOfficialArtworkPath(pokemonData.id);
+  
+  const hasLocalSprites = (
+    spriteExistsLocally(frontDefaultPath) ||
+    spriteExistsLocally(frontShinyPath) ||
+    spriteExistsLocally(officialArtworkPath)
+  );
+
+  // If we don't have the sprites locally, download them
+  if (!hasLocalSprites) {
+    try {
+      // Download sprites in the background, don't await
+      downloadAndCachePokemonSprites(pokemonData.id, sprites)
+        .catch(err => console.error(`Error downloading sprites for ${pokemonData.name}:`, err));
+    } catch (error) {
+      console.error(`Error initiating sprite download for ${pokemonData.name}:`, error);
+    }
+  }
+
+  // Get data URLs for the sprites if they exist locally
+  if (hasLocalSprites) {
+    sprites.data_urls = getPokemonSpriteDataUrls(pokemonData.id);
+  }
+
   return {
     id: pokemonData.id,
     name: capitalizeFirstLetter(pokemonData.name),
@@ -107,11 +163,7 @@ export async function processPokemonData(
       'special-defense': stats['special-defense'] || 0,
       speed: stats.speed || 0
     },
-    sprites: {
-      front_default: pokemonData.sprites.front_default,
-      front_shiny: pokemonData.sprites.front_shiny,
-      official_artwork: pokemonData.sprites.other?.['official-artwork']?.front_default || null
-    },
+    sprites: sprites,
     description: cleanDescription(description),
     generation: capitalizeFirstLetter(speciesData.generation.name.replace('-', ' ')),
     evolution_chain: evolutionChain
@@ -187,11 +239,21 @@ export async function processSearchResults(searchResults: { name: string; url: s
       () => pokeApiClient.getPokemon(id)
     );
     
+    // Get sprite data URL if it exists locally
+    const frontDefaultPath = getFrontDefaultSpritePath(pokemon.id);
+    let sprite = pokemon.sprites.front_default;
+    let spriteDataUrl = null;
+    
+    if (spriteExistsLocally(frontDefaultPath)) {
+      spriteDataUrl = getPokemonSpriteDataUrls(pokemon.id).front_default;
+    }
+    
     processedResults.push({
       id: pokemon.id,
       name: capitalizeFirstLetter(pokemon.name),
       types: pokemon.types.map(type => type.type.name),
-      sprite: pokemon.sprites.front_default
+      sprite: sprite,
+      sprite_data_url: spriteDataUrl
     });
   }
   

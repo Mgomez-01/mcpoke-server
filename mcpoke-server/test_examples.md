@@ -1,3 +1,76 @@
+# Working with MCP Text Responses
+
+The MCPoke Server returns all responses as text content (JSON-stringified objects). This matches the MCP protocol requirements. When working with the responses in Claude Desktop, Claude will automatically parse the JSON responses to extract the relevant information.
+
+## Clear Sprite Cache
+
+```json
+{
+  "method": "call_tool",
+  "params": {
+    "name": "clear_sprite_cache",
+    "arguments": {
+      "type": "all"
+    }
+  }
+}
+```
+
+## Bulk Download Pokémon Sprites
+
+```json
+{
+  "method": "call_tool",
+  "params": {
+    "name": "bulk_download_sprites",
+    "arguments": {
+      "start_id": 1,
+      "end_id": 10,
+      "sprite_type": "all"
+    }
+  }
+}
+```
+
+## Get Sprite Cache Statistics
+
+```json
+{
+  "method": "call_tool",
+  "params": {
+    "name": "get_sprite_cache_stats"
+  }
+}
+```
+
+## Download and Cache Pokémon Sprites
+
+```json
+{
+  "method": "call_tool",
+  "params": {
+    "name": "download_sprites",
+    "arguments": {
+      "name_or_id": "pikachu"
+    }
+  }
+}
+```
+
+## Check Sprite Cache Status
+
+```json
+{
+  "method": "call_tool",
+  "params": {
+    "name": "check_sprite_cache",
+    "arguments": {
+      "name_or_id": "pikachu"
+    }
+  }
+}
+```
+
 # MCPoke Server Test Examples
 
 Below are example requests you can use to test the MCPoke Server with the MCP Inspector tool.

@@ -80,6 +80,18 @@ Once configured, you can ask Claude questions about Pokémon like:
 - "Tell me about the move Thunderbolt"
 - "How effective is an Electric-type attack against a Water/Flying Pokémon?"
 
+Behind the scenes, Claude uses different tools provided by the MCPoke Server:
+
+- `get_pokemon` for detailed Pokémon information
+- `search_pokemon` for finding Pokémon by name
+- `compare_pokemon` for side-by-side comparisons
+- `get_ability` for ability information
+- `get_move` for move details
+- `get_type` for type information
+- `get_type_effectiveness` for calculating battle matchups
+
+With debug mode enabled, you can watch these interactions in real-time by examining the server logs.
+
 ## Testing and Development
 
 ### Using the MCP Inspector
@@ -101,7 +113,14 @@ For debugging, you can use:
 npm run debug
 ```
 
-This will start the server with Node.js inspector enabled.
+This will start the server with Node.js inspector enabled, allowing you to use Chrome DevTools or Visual Studio Code to debug the server. The MCPoke Server also includes a comprehensive debug logging system.
+
+Detailed debugging documentation is available in [DEBUGGING.md](DEBUGGING.md) including:
+
+- How to connect debugging tools
+- Understanding the debug logs
+- Common debugging scenarios
+- Advanced debugging techniques
 
 ## Future Enhancements
 
